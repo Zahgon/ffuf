@@ -1,7 +1,7 @@
 ![ffuf mascot](_img/ffuf_run_logo_600.png)
 # ffuf - Fuzz Faster U Fool
 
-A fast web fuzzer written in Go.
+A fast web fuzzer written in Java.
 
 - [Installation](https://github.com/ffuf/ffuf#installation)
 - [Example usage](https://github.com/ffuf/ffuf#example-usage)
@@ -17,7 +17,7 @@ A fast web fuzzer written in Go.
 
 ## Installation
 
-- [Download](https://github.com/ffuf/ffuf/releases/latest) a prebuilt binary from [releases page](https://github.com/ffuf/ffuf/releases/latest), unpack and run!
+- [Download](https://github.com/ffuf/ffuf/releases/latest) the prebuilt `ffuf.jar` from the [releases page](https://github.com/ffuf/ffuf/releases/latest) and run it with `java -jar ffuf.jar`.
 
   _or_
 - If you are on Windows with [Scoop](https://scoop.sh/), ffuf can be installed with: `scoop install ffuf`
@@ -29,13 +29,10 @@ A fast web fuzzer written in Go.
 - If you are on macOS with [homebrew](https://brew.sh), ffuf can be installed with: `brew install ffuf`
   
   _or_
-- If you have recent go compiler installed: `go install github.com/ffuf/ffuf/v2@latest` (the same command works for updating)
-  
-  _or_
-- `git clone https://github.com/ffuf/ffuf ; cd ffuf ; go get ; go build`
+- Build from source with Java 17 or newer and Maven: `git clone https://github.com/ffuf/ffuf ; cd ffuf ; mvn -B -DskipTests package`, then run `java -jar target/ffuf.jar` (a small `ffuf` wrapper script on your PATH that runs `exec java -jar /path/to/ffuf.jar "$@"` makes it a drop-in command)
 
-1. Ffuf depends on Go 1.20 or greater.
-2. A go build from a checkout shows `git-<date>-<commit>` rather than the tag. A local build isn't an official release even when you're sitting on a tag, and Go's embedded build info gives us the commit but not the tag name — so we surface the exact commit it was built from. The authoritative versioned binaries are the ones on the releases page.
+1. Ffuf depends on Java 17 or greater.
+2. Run the test suite with `mvn -B test`.
 
 ## Example usage
 

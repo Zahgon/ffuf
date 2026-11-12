@@ -5,10 +5,10 @@ detailed engineering documentation lives in the wiki.
 
 ## Before you start
 
-- ffuf needs Go 1.20 or newer.
-- Build: `go build` at the repo root produces the `ffuf` binary.
-- Test: `go test -race ./...`. The race detector is what CI gates on, so run it
-  before you push.
+- ffuf needs Java 17 or newer and Maven.
+- Build: `mvn -B -DskipTests package` at the repo root produces `target/ffuf.jar`,
+  run with `java -jar target/ffuf.jar`.
+- Test: `mvn -B test`. This is what CI gates on, so run it before you push.
 
 ## Engineering documentation (the wiki)
 
@@ -31,10 +31,10 @@ page before touching a flag.
 
 - Base your branch on the latest `master`.
 - Keep each pull request to one logical change.
-- Run `go test -race ./...`, and make sure `gofmt` and `go vet` are clean.
+- Run `mvn -B test` and make sure the build has no compiler warnings.
 - If your change affects help, flag, or config output, regenerate the
-  characterization goldens and commit them:
-  `go test -run Characterization -update-golden .`
+  characterization goldens in `testdata/` and commit them
+  (`CharacterizationTest` compares against them).
 - If this is your first contribution, add your name to `CONTRIBUTORS.md`
   (the file is alphabetically ordered).
 - Add a short entry describing your change to `CHANGELOG.md` under the `master`
