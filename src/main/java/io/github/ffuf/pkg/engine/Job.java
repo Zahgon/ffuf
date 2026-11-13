@@ -504,11 +504,7 @@ public class Job {
             if (replayRunner != null) {
                 Request replayreq = replayRunner.prepare(in, ctx.basereq());
                 replayreq.position = pos;
-                try {
-                    replayRunner.execute(replayreq);
-                } catch (SimpleRunner.RequestException e) {
-                    // the outcome of the replayed request is discarded
-                }
+                sendReplay(replayreq);
             }
             output.result(resp);
             updateProgress();
@@ -592,6 +588,21 @@ public class Job {
                     // there is no case for "word", so word filters never reach the history entry
                 }
             }
+        }
+    }
+
+    /**
+     * Sends the copy of a matched request to the replay proxy. The replay only mirrors the traffic, so its outcome does
+     * not change the result.
+     *
+     * @return true when the replay request completed, false when it failed
+     */
+    private boolean sendReplay(Request replayreq) {
+        try {
+            replayRunner.execute(replayreq);
+            return true;
+        } catch (SimpleRunner.RequestException e) {
+            return false;
         }
     }
 }

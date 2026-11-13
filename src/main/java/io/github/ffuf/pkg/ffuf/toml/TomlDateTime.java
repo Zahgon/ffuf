@@ -134,7 +134,11 @@ public sealed interface TomlDateTime {
         }
     }
 
-    /** Parses a {@code YYYY-MM-DD} lexer token as Go's {@code time.Parse("2006-01-02", s)} does. */
+    /**
+     * Parses a {@code YYYY-MM-DD} lexer token as Go's {@code time.Parse("2006-01-02", s)} does.
+     *
+     * @throws TomlException when the token is not a valid date
+     */
     static Date parseDate(String s) throws TomlException {
         Date d = new Date(Integer.parseInt(s.substring(0, 4)), Integer.parseInt(s.substring(5, 7)),
                 Integer.parseInt(s.substring(8, 10)));
@@ -143,7 +147,11 @@ public sealed interface TomlDateTime {
         return d;
     }
 
-    /** Parses an {@code HH:MM:SS[.fraction]} lexer token as Go's {@code time.Parse("15:04:05.999999999", s)} does. */
+    /**
+     * Parses an {@code HH:MM:SS[.fraction]} lexer token as Go's {@code time.Parse("15:04:05.999999999", s)} does.
+     *
+     * @throws TomlException when the token is not a valid time
+     */
     static Time parseTime(String s) throws TomlException {
         return parseClock(s, s);
     }
@@ -151,6 +159,8 @@ public sealed interface TomlDateTime {
     /**
      * Parses a local date-time joined with {@code T}, as go-toml's {@code ParseLocalDateTime} does: on failure it
      * retries with a lowercase {@code t} layout and reports that second error.
+     *
+     * @throws TomlException when the token is not a valid local date-time
      */
     static DateTime parseDateTime(String s) throws TomlException {
         Date d = new Date(Integer.parseInt(s.substring(0, 4)), Integer.parseInt(s.substring(5, 7)),
@@ -166,7 +176,11 @@ public sealed interface TomlDateTime {
         }
     }
 
-    /** Parses an offset date-time joined with {@code T}, as Go's {@code time.ParseInLocation(RFC3339Nano)} does. */
+    /**
+     * Parses an offset date-time joined with {@code T}, as Go's {@code time.ParseInLocation(RFC3339Nano)} does.
+     *
+     * @throws TomlException when the token is not a valid offset date-time
+     */
     static Offset parseOffset(String s) throws TomlException {
         Date d = new Date(Integer.parseInt(s.substring(0, 4)), Integer.parseInt(s.substring(5, 7)),
                 Integer.parseInt(s.substring(8, 10)));

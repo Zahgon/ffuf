@@ -143,7 +143,11 @@ final class Parser {
         this.flags = flags;
     }
 
-    /** Parses {@code expr} with the Perl flags of regexp.Compile. */
+    /**
+     * Parses {@code expr} with the Perl flags of regexp.Compile.
+     *
+     * @throws GoRegexp.SyntaxException when the expression is not valid regular expression syntax
+     */
     static Node parse(byte[] expr) throws GoRegexp.SyntaxException {
         Parser p = new Parser(expr, PERL);
         try {
@@ -1127,7 +1131,11 @@ final class Parser {
         return true;
     }
 
-    /** The rune of the escape at {@code t} and the position after it packed as {@code r << 32 | rest}. */
+    /**
+     * The rune of the escape at {@code t} and the position after it packed as {@code r << 32 | rest}.
+     *
+     * @throws GoRegexp.SyntaxException when the escape sequence is not valid
+     */
     private long parseEscape(int start) throws GoRegexp.SyntaxException {
         int t = start + 1;
         if (t >= end) {
@@ -1487,7 +1495,11 @@ final class Parser {
         }
     }
 
-    /** The rune at {@code t} packed as {@code r << 3 | width}; invalid UTF-8 is an error. */
+    /**
+     * The rune at {@code t} packed as {@code r << 3 | width}; invalid UTF-8 is an error.
+     *
+     * @throws GoRegexp.SyntaxException when the bytes at {@code t} are not valid UTF-8
+     */
     private int nextRune(int t, int limit) throws GoRegexp.SyntaxException {
         int d = Utf8.decode(s, t, limit);
         if ((d >> 3) == Utf8.RUNE_ERROR && (d & 7) == 1) {

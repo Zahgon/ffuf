@@ -62,7 +62,11 @@ final class HttpGuts {
         return true;
     }
 
-    /** {@return the host:port with a non-ASCII host converted to Punycode, as Go's httpguts.PunycodeHostPort does} */
+    /**
+     * {@return the host:port with a non-ASCII host converted to Punycode, as Go's httpguts.PunycodeHostPort does}
+     *
+     * @throws GoUrl.UrlException when the host has no punycode form
+     */
     static String punycodeHostPort(String v) throws GoUrl.UrlException {
         if (isAscii(v)) {
             return v;
@@ -106,7 +110,11 @@ final class HttpGuts {
         return new String[] {host, hostport.substring(i + 1)};
     }
 
-    /** idna.ToASCII with the Punycode profile: every non-ASCII label becomes "xn--" plus its Punycode. */
+    /**
+     * idna.ToASCII with the Punycode profile: every non-ASCII label becomes "xn--" plus its Punycode.
+     *
+     * @throws GoUrl.UrlException when the host has no ASCII (IDNA) form
+     */
     static String toAscii(String host) throws GoUrl.UrlException {
         String[] labels = host.split("\\.", -1);
         StringBuilder out = new StringBuilder();
@@ -134,7 +142,11 @@ final class HttpGuts {
         return (char) (d < 26 ? d + 'a' : d - 26 + '0');
     }
 
-    /** Punycode of one label (RFC 3492) with the "xn--" prefix. */
+    /**
+     * Punycode of one label (RFC 3492) with the "xn--" prefix.
+     *
+     * @throws GoUrl.UrlException when the label cannot be encoded
+     */
     static String punycode(String label) throws GoUrl.UrlException {
         int[] runes = new int[label.length()];
         int count = 0;

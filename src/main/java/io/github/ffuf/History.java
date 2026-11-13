@@ -62,6 +62,7 @@ final class History {
             try {
                 conf = Config.fromOptions(e.options, argv);
             } catch (Config.ConfigException ex) {
+                // An entry whose saved options no longer form a valid configuration is not a candidate; it is skipped.
                 continue;
             }
             String reason = null;

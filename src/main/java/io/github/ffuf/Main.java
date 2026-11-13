@@ -60,11 +60,8 @@ public final class Main {
     static int run(String[] args) {
         String optsErr = null;
         ConfigOptions opts;
-        try {
-            Util.checkOrCreateConfigDir();
-        } catch (IOException e) {
-            // a missing configuration directory only means no default config file is read
-        }
+        // When a configuration folder cannot be created, the run goes on without the default config file.
+        Util.checkOrCreateConfigDir();
         String confFile = Util.configDir() + "/ffufrc";
         if (!Files.exists(Paths.get(confFile))) {
             confFile = Util.homeDir() + "/.ffufrc";
@@ -179,7 +176,8 @@ public final class Main {
                 try {
                     job.auditLogger().close();
                 } catch (IOException e) {
-                    // the scan already finished; a failed close does not change the exit code
+                    // The scan already finished, so the exit code stays; the lost audit tail is reported.
+                    System.err.print("Error closing the audit log: " + e.getMessage() + "\n");
                 }
             }
         }

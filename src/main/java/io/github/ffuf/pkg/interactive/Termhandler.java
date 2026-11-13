@@ -68,7 +68,11 @@ public final class Termhandler {
         }
     }
 
-    /** Opens the terminal: /dev/tty, or CONIN$ on Windows. */
+    /**
+     * Opens the terminal: /dev/tty, or CONIN$ on Windows.
+     *
+     * @throws IOException when the terminal cannot be opened
+     */
     static InputStream termHandle() throws IOException {
         String name = System.getProperty("os.name", "").startsWith("Windows") ? "CONIN$" : "/dev/tty";
         try {
@@ -90,6 +94,8 @@ public final class Termhandler {
     /**
      * Reads one line without its "\n" and one trailing "\r" (bufio.ScanLines); returns null at the end of input or
      * when a line is longer than the console reads.
+     *
+     * @throws IOException when reading the input fails
      */
     static byte[] readLine(InputStream in) throws IOException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
@@ -270,7 +276,8 @@ public final class Termhandler {
             try {
                 job.config().matcherManager.addFilter(name, value, replace);
             } catch (IllegalArgumentException e) {
-                // an invalid value is ignored and the filter stays as it was
+                // The filter stays as it was; the console says why the value was not taken.
+                output.warning("Invalid value for " + name + ": " + e.getMessage());
             }
         }
         refreshResults();

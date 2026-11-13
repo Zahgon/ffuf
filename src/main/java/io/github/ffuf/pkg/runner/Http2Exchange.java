@@ -41,7 +41,12 @@ final class Http2Exchange {
         client = b.build();
     }
 
-    /** Sends the request and returns the response as bytes, plus the nanoseconds until the response arrived. */
+    /**
+     * Sends the request and returns the response as bytes, plus the nanoseconds until the response arrived.
+     *
+     * @throws IOException when the connection or the HTTP/2 exchange fails
+     * @throws InterruptedException when the thread is interrupted while waiting for the response
+     */
     byte[] send(String method, GoUrl url, String host, Map<String, String> headers, byte[] body, boolean gzip,
             int timeoutMs, long[] firstByteNanos) throws IOException, InterruptedException {
         HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(url.toString()))

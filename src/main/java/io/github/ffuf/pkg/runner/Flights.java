@@ -403,6 +403,8 @@ public class Flights {
     /**
      * Resolves a -preflight-var-auto variable. A pinned source is read directly; "auto" tries every source in order,
      * pins the first that resolves the key for the rest of the run, and refuses a key two sources disagree on.
+     *
+     * @throws VarNotFoundException when no source resolves the key, or two sources disagree on it
      */
     synchronized String extractByName(VarExtract ve, FlightResponse fr) throws VarNotFoundException {
         String source = ve.source;

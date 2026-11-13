@@ -277,7 +277,11 @@ final class Parser {
         };
     }
 
-    /** A local time, or a local date that may continue as a local or offset date-time; errors sit at {@code first}. */
+    /**
+     * A local time, or a local date that may continue as a local or offset date-time; errors sit at {@code first}.
+     *
+     * @throws TomlException when the token is not a valid TOML date, time or date-time
+     */
     private Object parseDateTimeValue(Token first) throws TomlException {
         try {
             if (first.type() == Token.Type.LOCAL_TIME) {
@@ -386,7 +390,11 @@ final class Parser {
         return array;
     }
 
-    /** go-toml's {@code parseKey}: splits a raw key into its dotted parts, quoted parts kept verbatim. */
+    /**
+     * go-toml's {@code parseKey}: splits a raw key into its dotted parts, quoted parts kept verbatim.
+     *
+     * @throws TomlException when the text is not a valid TOML key
+     */
     static List<String> parseKey(String key) throws TomlException {
         int[] runes = key.codePoints().toArray();
         List<String> groups = new ArrayList<>();

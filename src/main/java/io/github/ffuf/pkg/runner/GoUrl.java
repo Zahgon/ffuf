@@ -556,7 +556,8 @@ public final class GoUrl {
         try {
             setPath(p);
         } catch (UrlException e) {
-            // Go ignores this error: an escaped path always unescapes
+            // resolvePath only joins and cleans two escaped paths, so the result always unescapes.
+            throw new IllegalStateException("resolved path does not unescape: " + p, e);
         }
     }
 

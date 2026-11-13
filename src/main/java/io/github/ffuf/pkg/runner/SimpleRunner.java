@@ -105,7 +105,11 @@ public class SimpleRunner {
         this.clientCert = ClientCert.load(conf.clientCert, conf.clientKey);
     }
 
-    /** The proxy for a request to target, or null for a direct connection. */
+    /**
+     * The proxy for a request to target, or null for a direct connection.
+     *
+     * @throws RequestException when the proxy settings are not usable for this request
+     */
     private GoUrl proxyFor(GoUrl target, String op) throws RequestException {
         if (customProxy != null) {
             return customProxy;
@@ -147,7 +151,11 @@ public class SimpleRunner {
         return req;
     }
 
-    /** Builds the outgoing request: validates method and URL with the rules of Go's http.NewRequest, applies the headers and fills its host. */
+    /**
+     * Builds the outgoing request: validates method and URL with the rules of Go's http.NewRequest, applies the headers and fills its host.
+     *
+     * @throws RequestException when the method or the URL is not valid
+     */
     private Outgoing newRequest(Request req) throws RequestException {
         Outgoing o = new Outgoing();
         o.method = GoText.bin(req.method.isEmpty() ? "GET" : req.method);
@@ -240,7 +248,11 @@ public class SimpleRunner {
         }
     }
 
-    /** The next request of a redirect chain: the Location resolved against the current URL. */
+    /**
+     * The next request of a redirect chain: the Location resolved against the current URL.
+     *
+     * @throws RequestException when the Location does not resolve to a valid URL
+     */
     private static Outgoing redirect(Outgoing first, Outgoing cur, String loc, String op, boolean includeBody)
             throws RequestException {
         Outgoing next = new Outgoing();
@@ -373,7 +385,11 @@ public class SimpleRunner {
         return headers.getOrDefault("Accept-Encoding", "").isEmpty() && headers.getOrDefault("Range", "").isEmpty() && !method.equals("HEAD");
     }
 
-    /** Request.write without the body: the request line and headers exactly as Go writes them. */
+    /**
+     * Request.write without the body: the request line and headers exactly as Go writes them.
+     *
+     * @throws GoUrl.UrlException when the URL cannot be written as a request target
+     */
     static String head(String method, GoUrl url, String reqHost, Map<String, String> headers, byte[] body, String proxyAuth)
             throws GoUrl.UrlException {
         boolean usingProxy = proxyAuth != null;
@@ -509,7 +525,12 @@ public class SimpleRunner {
         }
     }
 
-    /** The exchange with a server that chose h2: -http2 forces the HTTP/2 attempt. */
+    /**
+     * The exchange with a server that chose h2: -http2 forces the HTTP/2 attempt.
+     *
+     * @throws IOException when the connection fails
+     * @throws RequestException when the HTTP/2 exchange fails as a request error
+     */
     private Received sendHttp2(Request req, Outgoing o, Map<String, String> headers, int timeoutMs, String op)
             throws IOException, RequestException {
         Http2Exchange h2;
@@ -596,6 +617,9 @@ public class SimpleRunner {
     /**
      * Dials the target, directly or through the proxy, and starts TLS for https targets. The dialled socket is closed
      * when the proxy handshake or TLS setup fails.
+     *
+     * @throws RequestException when dialling, the proxy handshake or TLS setup fails as a request error
+     * @throws IOException when the socket fails
      */
     private Socket connect(GoUrl proxy, GoUrl u, int timeoutMs, String op) throws RequestException, IOException {
         String host = asciiHostname(u);
@@ -614,7 +638,12 @@ public class SimpleRunner {
         }
     }
 
-    /** Runs the proxy handshake, if any, on the dialled socket and starts TLS for https targets. */
+    /**
+     * Runs the proxy handshake, if any, on the dialled socket and starts TLS for https targets.
+     *
+     * @throws RequestException when the proxy handshake or TLS setup fails as a request error
+     * @throws IOException when the socket fails
+     */
     private Socket handshake(Socket s, GoUrl proxy, GoUrl u, String host, int port, int timeoutMs, String op)
             throws RequestException, IOException {
         if (proxy != null) {
@@ -633,7 +662,12 @@ public class SimpleRunner {
         return u.scheme.equals("https") ? tls(s, host, port, timeoutMs, proxy == null && config.http2) : s;
     }
 
-    /** The CONNECT request Go's transport sends to an HTTP proxy for an https target. */
+    /**
+     * The CONNECT request Go's transport sends to an HTTP proxy for an https target.
+     *
+     * @throws IOException when the socket fails
+     * @throws RequestException when the proxy refuses the CONNECT request
+     */
     private static void proxyTunnel(GoUrl proxy, Socket s, String target, String op, GoUrl u) throws IOException, RequestException {
         StringBuilder req = new StringBuilder("CONNECT ").append(target).append(" HTTP/1.1\r\nHost: ").append(target)
                 .append("\r\nUser-Agent: Go-http-client/1.1\r\n");
@@ -666,7 +700,11 @@ public class SimpleRunner {
         return "Basic " + Base64.getEncoder().encodeToString(GoText.bytes(proxy.username + ":" + proxy.password));
     }
 
-    /** The SOCKS5 CONNECT handshake of golang.org/x/net/internal/socks. */
+    /**
+     * The SOCKS5 CONNECT handshake of golang.org/x/net/internal/socks.
+     *
+     * @throws IOException when the socket fails or the SOCKS5 server refuses the connection
+     */
     private static void socks5Connect(GoUrl proxy, Socket s, String host, int port) throws IOException {
         OutputStream out = s.getOutputStream();
         InputStream in = s.getInputStream();
@@ -724,6 +762,8 @@ public class SimpleRunner {
     /**
      * Starts TLS on the socket: no certificate verification, -sni as the server name, the -cc/-ck client
      * certificate, and with offerH2 the ALPN list "h2", "http/1.1".
+     *
+     * @throws IOException when the TLS handshake fails
      */
     private SSLSocket tls(Socket s, String host, int port, int timeoutMs, boolean offerH2) throws IOException {
         SSLSocket ssl = (SSLSocket) sslContext().getSocketFactory().createSocket(s, config.sni.isEmpty() ? GoText.text(host) : config.sni, port, true);
@@ -791,7 +831,11 @@ public class SimpleRunner {
         return readLine(in, new long[] {Long.MAX_VALUE});
     }
 
-    /** Reads one line, charging its bytes to budget; past the budget it throws a {@link HeaderLimitException}. */
+    /**
+     * Reads one line, charging its bytes to budget; past the budget it throws a {@link HeaderLimitException}.
+     *
+     * @throws IOException when reading fails or the line passes the budget
+     */
     private static String readLine(InputStream in, long[] budget) throws IOException {
         ByteArrayOutputStream b = new ByteArrayOutputStream();
         int c;
@@ -1003,7 +1047,11 @@ public class SimpleRunner {
         return c;
     }
 
-    /** The chunked body as Go's chunkedReader reads it; malformed framing is an IOException. */
+    /**
+     * The chunked body as Go's chunkedReader reads it; malformed framing is an IOException.
+     *
+     * @throws IOException when reading fails or the chunked framing is malformed
+     */
     private static byte[] readChunked(InputStream in) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         while (true) {

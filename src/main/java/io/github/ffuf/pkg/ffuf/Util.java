@@ -217,18 +217,28 @@ public final class Util {
     /**
      * Creates the configuration folders and the default autocalibration strategy files.
      *
-     * @throws IOException when a folder or file cannot be created
+     * @return true when every folder and strategy file is in place, false when one could not be created; ffuf then
+     *         runs without the missing default configuration, history or strategy files
      */
-    public static void checkOrCreateConfigDir() throws IOException {
+    public static boolean checkOrCreateConfigDir() {
         String base = configDir();
-        createConfigDir(base);
-        createConfigDir(base + "/history");
-        createConfigDir(base + "/scraper");
-        createConfigDir(base + "/autocalibration");
-        setupDefaultAutocalibrationStrategies(base + "/autocalibration");
+        try {
+            createConfigDir(base);
+            createConfigDir(base + "/history");
+            createConfigDir(base + "/scraper");
+            createConfigDir(base + "/autocalibration");
+            setupDefaultAutocalibrationStrategies(base + "/autocalibration");
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
-    /** Writes basic.json, or when it exists advanced.json, with fresh random strings, unless that file exists. */
+    /**
+     * Writes basic.json, or when it exists advanced.json, with fresh random strings, unless that file exists.
+     *
+     * @throws IOException when a strategy file cannot be written
+     */
     static void setupDefaultAutocalibrationStrategies(String autocalibDir) throws IOException {
         String basic = "{\"basic_admin\":[\"admin" + randomString(16) + "\",\"admin" + randomString(8) + "\"],\"basic_random\":[\""
                 + randomString(16) + "\",\"" + randomString(8) + "\"],\"htaccess\":[\".htaccess" + randomString(16) + "\",\".htaccess" + randomString(8) + "\"]}";

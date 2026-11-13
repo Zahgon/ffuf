@@ -106,7 +106,11 @@ final class ClientCert {
         return null;
     }
 
-    /** Whether key signs what the certificate's public key verifies, as LoadX509KeyPair's pair check. */
+    /**
+     * Whether key signs what the certificate's public key verifies, as LoadX509KeyPair's pair check.
+     *
+     * @throws GeneralSecurityException when the key or the certificate cannot be used for the check
+     */
     private static boolean matches(PrivateKey key, Certificate cert) throws GeneralSecurityException {
         String alg = switch (key.getAlgorithm()) {
             case "RSA" -> "SHA256withRSA";

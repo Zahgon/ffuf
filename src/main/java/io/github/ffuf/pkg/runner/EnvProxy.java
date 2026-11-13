@@ -131,11 +131,14 @@ final class EnvProxy {
                 matchHost = true;
                 phost = "." + phost;
             }
+            String asciiHost;
             try {
-                phost = HttpGuts.toAscii(phost);
+                asciiHost = HttpGuts.toAscii(phost);
             } catch (GoUrl.UrlException e) {
-                // idnaASCII failed: the entry is kept as written
+                // A name that has no ASCII (IDNA) form is matched as written.
+                asciiHost = phost;
             }
+            phost = asciiHost;
             String suffix = phost;
             String port = pport;
             boolean exact = matchHost;
@@ -188,7 +191,11 @@ final class EnvProxy {
         };
     }
 
-    /** The proxy for a request to target, or null for a direct connection. */
+    /**
+     * The proxy for a request to target, or null for a direct connection.
+     *
+     * @throws CgiException when the proxy settings cannot be used for this request
+     */
     GoUrl proxyFor(GoUrl target) throws CgiException {
         GoUrl proxy = null;
         if (target.scheme.equals("https")) {

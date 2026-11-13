@@ -32,7 +32,11 @@ final class SelectorParser {
         this.s = s;
     }
 
-    /** cascadia.ParseGroup over a byte string. */
+    /**
+     * cascadia.ParseGroup over a byte string.
+     *
+     * @throws SyntaxException when the selector group is not valid selector syntax
+     */
     static Matcher parseGroup(String sel) throws SyntaxException {
         SelectorParser p = new SelectorParser(sel);
         Matcher m = p.parseSelectorGroup();
@@ -320,7 +324,11 @@ final class SelectorParser {
         return new Matchers.Attr(key, val, op, rx, ignoreCase);
     }
 
-    /** Returns the pseudo-class matcher, or null for a pseudo-element (which Compile then rejects). */
+    /**
+     * Returns the pseudo-class matcher, or null for a pseudo-element (which Compile then rejects).
+     *
+     * @throws SyntaxException when the pseudo-class or its argument is not valid
+     */
     private Matcher parsePseudoclassSelector() throws SyntaxException {
         i++;
         if (i >= s.length()) {
