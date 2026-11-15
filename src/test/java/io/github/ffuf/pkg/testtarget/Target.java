@@ -51,7 +51,11 @@ public final class Target implements AutoCloseable {
         this.server = server;
     }
 
-    /** Starts a new target; the caller must close it. */
+    /**
+     * Starts a new target; the caller must close it.
+     *
+     * @throws IOException when the server socket cannot be opened
+     */
     public static Target start() throws IOException {
         HttpServer s = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 128);
         Target t = new Target(s);

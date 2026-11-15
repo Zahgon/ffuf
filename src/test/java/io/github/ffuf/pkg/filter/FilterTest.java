@@ -14,6 +14,9 @@ class FilterTest {
         assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("word", "200"));
         assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("line", "200"));
         assertInstanceOf(RegexpFilter.class, MatcherManager.newFilterByName("regexp", "200"));
+        // TestNewFilterByName passes "200" for "time" too: Go's NewTimeFilter returns a *TimeFilter together with its
+        // "invalid value" error for a value without < or >, and the test checks only the type. Java has no value-plus-
+        // error return, so the same input is checked by the error that only the time filter raises.
         IllegalArgumentException timeErr = assertThrows(IllegalArgumentException.class, () -> MatcherManager.newFilterByName("time", "200"));
         assertTrue(timeErr.getMessage().startsWith("Time filter or matcher (-ft / -mt)"), "time name builds a time filter: " + timeErr.getMessage());
     }

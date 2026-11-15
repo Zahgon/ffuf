@@ -10,7 +10,7 @@ import java.util.Objects;
  * tree keeps the exact bytes of the parsed document. {@link GoStrings#decode} turns such a string into Java text.
  */
 public final class Node {
-    /** The node kinds of golang.org/x/net/html, in the same order. */
+    /** The node kinds of a parsed document, in the order golang.org/x/net/html declares them. */
     public enum Type {
         ERROR, TEXT, DOCUMENT, ELEMENT, COMMENT, DOCTYPE, RAW, SCOPE_MARKER
     }

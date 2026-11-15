@@ -26,6 +26,17 @@ class ConcurrencyTest {
         mm.addMatcher("status", "all");
         AtomicBoolean stop = new AtomicBoolean();
         ExecutorService pool = Executors.newFixedThreadPool(12);
+        try {
+            runReadersAndWriters(mm, stop, pool);
+        } finally {
+            stop.set(true);
+            pool.shutdownNow();
+        }
+        assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS), "workers stopped, want all terminated");
+    }
+
+    /** Starts four writers and eight readers on the pool, lets them run, then stops them and waits for each. */
+    private static void runReadersAndWriters(MatcherManager mm, AtomicBoolean stop, ExecutorService pool) throws Exception {
         List<Future<?>> futures = new ArrayList<>();
         for (int w = 0; w < 4; w++) {
             futures.add(pool.submit(() -> {
@@ -54,8 +65,6 @@ class ConcurrencyTest {
         for (Future<?> f : futures) {
             f.get(10, TimeUnit.SECONDS);
         }
-        pool.shutdown();
-        assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS), "workers stopped, want all terminated");
     }
 
     private static void iterate(Map<String, FilterProvider> m) {

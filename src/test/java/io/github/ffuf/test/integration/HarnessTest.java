@@ -35,6 +35,7 @@ public class HarnessTest {
         private final List<Response> responses = new ArrayList<>();
         private final List<String> messages = new ArrayList<>();
 
+        /** Creates a capturing output for the configuration conf. */
         public Capture(Config conf) {
             super(conf);
         }
@@ -71,10 +72,12 @@ public class HarnessTest {
         public void finalizeOutput() {
         }
 
+        /** {@return a copy of the matched responses, in the order they were reported} */
         public synchronized List<Response> responses() {
             return new ArrayList<>(responses);
         }
 
+        /** {@return a copy of the information, warning and error lines, each with its [INFO], [WARN] or [ERR] prefix} */
         public synchronized List<String> messages() {
             return new ArrayList<>(messages);
         }
@@ -90,7 +93,12 @@ public class HarnessTest {
         }
     }
 
-    /** Writes words, one per line, to a new file under dir. */
+    /**
+     * Writes words, one per line, to a new file under dir.
+     *
+     * @return the path of the wordlist file
+     * @throws IOException when the file cannot be created or written
+     */
     public static String writeWordlist(Path dir, List<String> words) throws IOException {
         Path f = Files.createTempFile(dir, "wordlist-", ".txt");
         StringBuilder sb = new StringBuilder();
@@ -101,7 +109,11 @@ public class HarnessTest {
         return f.toString();
     }
 
-    /** The options every scan starts from: GET on url with the words as the FUZZ wordlist, quiet. */
+    /**
+     * The options every scan starts from: GET on url with the words as the FUZZ wordlist, quiet.
+     *
+     * @throws IOException when the wordlist file cannot be written
+     */
     public static ConfigOptions options(Path dir, String url, List<String> words) throws IOException {
         ConfigOptions opts = new ConfigOptions();
         opts.http.url = url;
@@ -111,7 +123,12 @@ public class HarnessTest {
         return opts;
     }
 
-    /** Builds the Job as Main does, with the given matchers and filters and the given output. */
+    /**
+     * Builds the Job as Main does, with the given matchers and filters and the given output.
+     *
+     * @throws Config.ConfigException when the options do not form a valid configuration
+     * @throws IOException when a configuration or input file cannot be read
+     */
     public static Job buildJob(ConfigOptions opts, Consumer<MatcherManager> setup, java.util.function.Function<Config, Stdoutput> output)
             throws Config.ConfigException, IOException {
         Util.checkOrCreateConfigDir();
@@ -126,7 +143,12 @@ public class HarnessTest {
         return job;
     }
 
-    /** Runs a full scan and returns the capturing output. */
+    /**
+     * Runs a full scan and returns the capturing output.
+     *
+     * @throws Config.ConfigException when the options do not form a valid configuration
+     * @throws IOException when a configuration or input file cannot be read
+     */
     public static Capture scan(ConfigOptions opts, Consumer<MatcherManager> setup) throws Config.ConfigException, IOException {
         Capture[] out = new Capture[1];
         Job job = buildJob(opts, setup, conf -> out[0] = new Capture(conf));
@@ -134,7 +156,12 @@ public class HarnessTest {
         return out[0];
     }
 
-    /** Runs a full scan of url with words and returns the sorted set of FUZZ inputs that matched. */
+    /**
+     * Runs a full scan of url with words and returns the sorted set of FUZZ inputs that matched.
+     *
+     * @throws IOException when the wordlist or a configuration file cannot be written or read
+     * @throws Config.ConfigException when the options do not form a valid configuration
+     */
     public static List<String> runScan(Path dir, String url, List<String> words, Consumer<ConfigOptions> configure, Consumer<MatcherManager> setup)
             throws IOException, Config.ConfigException {
         ConfigOptions opts = options(dir, url, words);
@@ -144,6 +171,7 @@ public class HarnessTest {
         return scan(opts, setup).inputs();
     }
 
+    /** Asserts that got holds the same distinct inputs as want, in any order. */
     public static void assertSet(List<String> want, List<String> got) {
         assertEquals(new TreeSet<>(want), new TreeSet<>(got), "matched set");
     }

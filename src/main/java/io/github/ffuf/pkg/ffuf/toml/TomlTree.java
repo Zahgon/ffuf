@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A go-toml {@code Tree}: a table whose entries are leaf values, sub-tables or arrays of tables. Leaf values are
+ * A parsed TOML table whose entries are leaf values, sub-tables or arrays of tables. Leaf values are
  * {@link String}, {@link Long}, {@link GoUint64}, {@link Double}, {@link Boolean}, {@link TomlDateTime} or a
  * {@link List} of values (arrays may hold inline tables too).
  */

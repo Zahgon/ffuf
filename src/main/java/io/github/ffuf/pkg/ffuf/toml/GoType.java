@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  * slices and the Java object a struct type describes.
  */
 public final class GoType {
-    /** The Go kinds the option structs use. */
+    /** The kinds of value an option field holds, which decide how a TOML value converts into it. */
     public enum Kind {
         STRING, BOOL, INT, SLICE, STRUCT
     }

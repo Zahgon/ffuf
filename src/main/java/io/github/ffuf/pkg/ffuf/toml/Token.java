@@ -3,7 +3,7 @@ package io.github.ffuf.pkg.ffuf.toml;
 /** A lexer token: its type, its text and where it starts. */
 record Token(Type type, String val, Position pos) {
 
-    /** go-toml's token types, in its declaration order, with the names its messages print. */
+    /** The token types, in go-toml's declaration order, with the names its messages print. */
     enum Type {
         ERROR("Error"), EOF("EOF"), COMMENT("Comment"), KEY("Key"), STRING("String"), INTEGER("Integer"),
         TRUE("True"), FALSE("False"), FLOAT("Float"), INF("Inf"), NAN("NaN"), EQUAL("="), LEFT_BRACKET("["),

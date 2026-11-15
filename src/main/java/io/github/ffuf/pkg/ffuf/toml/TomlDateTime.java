@@ -88,7 +88,7 @@ public sealed interface TomlDateTime {
         }
     }
 
-    /** A {@code time.Time} with a zone offset in seconds; a zero offset is Go's UTC location. */
+    /** An offset date-time with its zone offset in seconds; a zero offset prints as UTC, the way Go prints it. */
     record Offset(Date date, Time time, int offsetSeconds) implements TomlDateTime {
         private String zone(boolean colon) {
             int off = Math.abs(offsetSeconds) / 60;

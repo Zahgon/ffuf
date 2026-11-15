@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/** The go-toml v1.9.5 parser: builds a {@link TomlTree} from the token stream, with go-toml's error texts. */
+/** Builds a {@link TomlTree} from the token stream, accepting what go-toml v1.9.5 accepts, with its error texts. */
 final class Parser {
     private static final BigInteger INT64_MIN = BigInteger.valueOf(Long.MIN_VALUE);
     private static final BigInteger INT64_MAX = BigInteger.valueOf(Long.MAX_VALUE);

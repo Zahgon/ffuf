@@ -144,14 +144,20 @@ class StdoutTest {
     @Test
     void testIsTerminalOfAPipe() throws Exception {
         Process p = new ProcessBuilder(ProcessHandle.current().info().command().orElse("java"), "-cp", System.getProperty("java.class.path"),
-                TerminalProbe.class.getName()).redirectErrorStream(false).start();
-        String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        p.waitFor();
+                TerminalProbe.class.getName()).redirectError(ProcessBuilder.Redirect.DISCARD).start();
+        String out;
+        try (java.io.InputStream stdout = p.getInputStream(); java.io.OutputStream stdin = p.getOutputStream()) {
+            out = new String(stdout.readAllBytes(), StandardCharsets.UTF_8);
+            p.waitFor();
+        } finally {
+            p.destroy();
+        }
         assertTrue(out.equals("stdout=false\n"), "a piped stdout is not a terminal: " + out);
     }
 
     /** Prints whether this process's stdout is a terminal. */
     public static final class TerminalProbe {
+        /** Prints the probe line for this process. */
         public static void main(String[] args) {
             System.out.print("stdout=" + Stdoutput.isTerminal(1) + "\n");
         }

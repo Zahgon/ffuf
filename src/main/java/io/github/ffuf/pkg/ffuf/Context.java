@@ -7,8 +7,8 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 /**
- * The cancellation context of a run (Go's context.WithCancel): stopping the run cancels it, which closes the
- * connections of the requests in flight and ends a pending -p delay at once.
+ * The cancellation context of a run, cancelled the way Go's context.WithCancel is: stopping the run cancels it,
+ * which closes the connections of the requests in flight and ends a pending -p delay at once.
  */
 public final class Context {
     private final Set<Closeable> open = Collections.newSetFromMap(new IdentityHashMap<>());

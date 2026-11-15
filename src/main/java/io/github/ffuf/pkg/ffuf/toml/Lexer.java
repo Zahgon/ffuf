@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The go-toml v1.9.5 lexer: a state machine over the document's runes that emits every token up front, stopping at
- * the first error token. Positions, accepted syntax and error texts follow go-toml exactly, including its
+ * Tokenizes a TOML document: a state machine over the document's runes that emits every token up front, stopping at
+ * the first error token. Positions, accepted syntax and error texts follow go-toml v1.9.5 exactly, including its
  * leniencies (line continuations in basic strings, literal strings spanning lines, dates followed by a newline being an
  * error).
  */
