@@ -88,12 +88,12 @@ class StdoutPauseTest {
         int n = 200;
         String out = StdoutTest.captureStdout(() -> {
             ExecutorService pool = Executors.newFixedThreadPool(16);
-            List<Future<?>> fs = new ArrayList<>();
-            for (int i = 0; i < n; i++) {
-                int k = i;
-                fs.add(pool.submit(() -> s.result(resp(k))));
-            }
             try {
+                List<Future<?>> fs = new ArrayList<>();
+                for (int i = 0; i < n; i++) {
+                    int k = i;
+                    fs.add(pool.submit(() -> s.result(resp(k))));
+                }
                 for (Future<?> f : fs) {
                     f.get(10, TimeUnit.SECONDS);
                 }

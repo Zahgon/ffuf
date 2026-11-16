@@ -22,19 +22,19 @@ class StdoutRaceTest {
         int n = 200;
         StdoutTest.captureStdout(() -> {
             ExecutorService pool = Executors.newFixedThreadPool(16);
-            List<Future<?>> fs = new ArrayList<>();
-            for (int i = 0; i < n; i++) {
-                int k = i;
-                fs.add(pool.submit(() -> {
-                    Response resp = new Response();
-                    resp.statusCode = 200;
-                    resp.request = new Request();
-                    resp.request.input.put("FUZZ", ("w" + k).getBytes(StandardCharsets.UTF_8));
-                    resp.request.url = "http://example/" + k;
-                    s.result(resp);
-                }));
-            }
             try {
+                List<Future<?>> fs = new ArrayList<>();
+                for (int i = 0; i < n; i++) {
+                    int k = i;
+                    fs.add(pool.submit(() -> {
+                        Response resp = new Response();
+                        resp.statusCode = 200;
+                        resp.request = new Request();
+                        resp.request.input.put("FUZZ", ("w" + k).getBytes(StandardCharsets.UTF_8));
+                        resp.request.url = "http://example/" + k;
+                        s.result(resp);
+                    }));
+                }
                 for (Future<?> f : fs) {
                     f.get(10, TimeUnit.SECONDS);
                 }

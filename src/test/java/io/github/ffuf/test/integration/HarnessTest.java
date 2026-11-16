@@ -30,7 +30,10 @@ import java.util.function.Consumer;
  * folder is isolated per test run (XDG_CONFIG_HOME under target/, set by the build), so history entries and scraper
  * rules never touch the user's own folder.
  */
-public class HarnessTest {
+public final class HarnessTest {
+    private HarnessTest() {
+    }
+
     /** An output that records matched responses and the information and warning lines instead of printing them. */
     public static class Capture extends Stdoutput {
         private final List<Response> responses = new ArrayList<>();

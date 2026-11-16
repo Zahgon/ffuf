@@ -34,6 +34,8 @@ public class Config {
     public double delayMax;
     public boolean dirSearchCompat;
     public List<String> extensions = new ArrayList<>();
+    /** The -enc encoder chains of the configuration record; null is written as JSON null, like a nil Go slice. */
+    public List<String> encoders = new ArrayList<>();
     public String filterMode = "or";
     public boolean followRedirects;
     public Map<String, String> headers = new LinkedHashMap<>();
@@ -517,7 +519,7 @@ public class Config {
         String delay = delayMin == delayMax ? String.format("%.2f", delayMin) : String.format("%.2f-%.2f", delayMin, delayMax);
         o.put("delay", new Json.Obj().put("value", delay));
         o.put("dirsearch_compatibility", dirSearchCompat);
-        o.put("encoders", new ArrayList<String>());
+        o.put("encoders", encoders);
         o.put("extensions", extensions);
         o.put("fmode", filterMode);
         o.put("follow_redirects", followRedirects);
@@ -526,10 +528,13 @@ public class Config {
         o.put("ignore_wordlist_comments", ignoreWordlistComments);
         o.put("inputmode", inputMode);
         o.put("cmd_inputnum", inputNum);
-        List<Object> providers = new ArrayList<>();
-        for (InputProviderConfig p : inputProviders) {
-            providers.add(new Json.Obj().put("name", p.name).put("keyword", p.keyword).put("value", p.value)
-                    .put("encoders", p.encoders).put("template", p.template));
+        List<Object> providers = null;
+        if (inputProviders != null) {
+            providers = new ArrayList<>();
+            for (InputProviderConfig p : inputProviders) {
+                providers.add(new Json.Obj().put("name", p.name).put("keyword", p.keyword).put("value", p.value)
+                        .put("encoders", p.encoders).put("template", p.template));
+            }
         }
         o.put("inputproviders", providers);
         o.put("inputshell", inputShell);
