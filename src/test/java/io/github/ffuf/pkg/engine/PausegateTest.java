@@ -72,14 +72,19 @@ class PausegateTest {
                         j.pauseCheckpoint();
                     }
                 });
+                t.setDaemon(true);
                 t.start();
                 workers.add(t);
             }
-            for (int k = 0; k < 500; k++) {
-                j.pause();
+            try {
+                for (int k = 0; k < 500; k++) {
+                    j.pause();
+                    j.resume();
+                }
+            } finally {
+                stop.set(true);
                 j.resume();
             }
-            stop.set(true);
             for (Thread t : workers) {
                 t.join();
             }
@@ -101,6 +106,8 @@ class PausegateTest {
                     j.resume();
                 }
             });
+            pauser.setDaemon(true);
+            resumer.setDaemon(true);
             pauser.start();
             resumer.start();
             pauser.join();
@@ -126,6 +133,8 @@ class PausegateTest {
             Job j = runningJob();
             Thread a = new Thread(j::pause);
             Thread b = new Thread(j::stop);
+            a.setDaemon(true);
+            b.setDaemon(true);
             a.start();
             b.start();
             a.join();

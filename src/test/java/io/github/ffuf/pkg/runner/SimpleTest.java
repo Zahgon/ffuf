@@ -67,10 +67,14 @@ class SimpleTest {
     private static HttpServer gzipServer(byte[] bomb, boolean withLength) throws IOException {
         return serve(ex -> {
             ex.getResponseHeaders().set("Content-Encoding", "gzip");
-            ex.sendResponseHeaders(200, withLength ? bomb.length : 0);
-            try (OutputStream out = ex.getResponseBody()) {
-                out.write(bomb);
+            try {
+                ex.sendResponseHeaders(200, withLength ? bomb.length : 0);
+                try (OutputStream out = ex.getResponseBody()) {
+                    out.write(bomb);
+                }
             } catch (IOException e) {
+                // The client stops reading at its download limit, which is what the test checks.
+            } finally {
                 ex.close();
             }
         });
@@ -81,13 +85,17 @@ class SimpleTest {
         byte[] chunk = new byte[1 << 20];
         Arrays.fill(chunk, (byte) 'A');
         return serve(ex -> {
-            ex.sendResponseHeaders(200, 0);
-            try (OutputStream out = ex.getResponseBody()) {
-                for (int written = 0; written < total; written += chunk.length) {
-                    out.write(chunk, 0, Math.min(chunk.length, total - written));
-                    out.flush();
+            try {
+                ex.sendResponseHeaders(200, 0);
+                try (OutputStream out = ex.getResponseBody()) {
+                    for (int written = 0; written < total; written += chunk.length) {
+                        out.write(chunk, 0, Math.min(chunk.length, total - written));
+                        out.flush();
+                    }
                 }
             } catch (IOException e) {
+                // The client stops reading at its download limit, which is what the test checks.
+            } finally {
                 ex.close();
             }
         });
@@ -202,9 +210,13 @@ class SimpleTest {
     @Test
     void testExecute_IgnoreBodyKeepsContentLength() throws Exception {
         HttpServer srv = serve(ex -> {
-            ex.sendResponseHeaders(200, 32 << 10);
-            try (OutputStream out = ex.getResponseBody()) {
-                out.write(new byte[32 << 10]);
+            try {
+                ex.sendResponseHeaders(200, 32 << 10);
+                try (OutputStream out = ex.getResponseBody()) {
+                    out.write(new byte[32 << 10]);
+                }
+            } finally {
+                ex.close();
             }
         });
         try {

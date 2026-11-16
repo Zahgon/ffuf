@@ -46,15 +46,10 @@ class ValueRangeTest {
     @Test
     void testValueRange_NeverPanics() {
         Random r = new Random(1);
-        String alphabet = "0123456789-+ ,abé世";
         for (int i = 0; i < SAMPLES; i++) {
-            StringBuilder sb = new StringBuilder();
-            int len = r.nextInt(12);
-            for (int k = 0; k < len; k++) {
-                sb.append(alphabet.charAt(r.nextInt(alphabet.length())));
-            }
-            long[] vr = RangeFilter.valueRange(sb.toString());
-            assertTrue(vr == null || vr[0] <= vr[1], "value range of \"" + sb + "\" must be well-formed (min <= max)");
+            String s = arbitraryString(r);
+            long[] vr = RangeFilter.valueRange(s);
+            assertTrue(vr == null || vr[0] <= vr[1], "value range of \"" + s + "\" must be well-formed (min <= max)");
         }
     }
 
@@ -77,14 +72,8 @@ class ValueRangeTest {
     @Test
     void testOptRange_NeverPanics() {
         Random r = new Random(1);
-        String alphabet = "0123456789.-+eExX_ainf";
         for (int i = 0; i < SAMPLES; i++) {
-            StringBuilder sb = new StringBuilder();
-            int len = r.nextInt(10);
-            for (int k = 0; k < len; k++) {
-                sb.append(alphabet.charAt(r.nextInt(alphabet.length())));
-            }
-            String s = sb.toString();
+            String s = arbitraryString(r);
             ConfigOptions o = new ConfigOptions();
             o.http.url = "http://127.0.0.1/FUZZ";
             o.input.wordlists = List.of("/tmp/wl.txt");
@@ -96,5 +85,19 @@ class ValueRangeTest {
                 assertTrue(e.getMessage().contains("Delay"), "delay \"" + s + "\" error mentions Delay: " + e.getMessage());
             }
         }
+    }
+
+    /**
+     * An arbitrary string as testing/quick draws one for a string argument: fewer than 50 runes, each uniform below
+     * U+10FFFF; a surrogate code point becomes U+FFFD, as Go's string conversion of that rune does.
+     */
+    private static String arbitraryString(Random r) {
+        StringBuilder sb = new StringBuilder();
+        int len = r.nextInt(50);
+        for (int k = 0; k < len; k++) {
+            int cp = r.nextInt(0x10ffff);
+            sb.appendCodePoint(cp >= 0xd800 && cp <= 0xdfff ? 0xfffd : cp);
+        }
+        return sb.toString();
     }
 }

@@ -196,11 +196,15 @@ public final class Target implements AutoCloseable {
 
     private static void send(HttpExchange ex, int status, String body) throws IOException {
         byte[] b = body.getBytes(StandardCharsets.UTF_8);
-        ex.sendResponseHeaders(status, b.length == 0 ? -1 : b.length);
-        if (b.length > 0) {
-            try (OutputStream out = ex.getResponseBody()) {
-                out.write(b);
+        try {
+            ex.sendResponseHeaders(status, b.length == 0 ? -1 : b.length);
+            if (b.length > 0) {
+                try (OutputStream out = ex.getResponseBody()) {
+                    out.write(b);
+                }
             }
+        } finally {
+            ex.close();
         }
     }
 

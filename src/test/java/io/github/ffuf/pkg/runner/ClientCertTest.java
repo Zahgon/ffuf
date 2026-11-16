@@ -82,9 +82,13 @@ class ClientCertTest {
                 subject += "none";
             }
             byte[] body = subject.getBytes(StandardCharsets.UTF_8);
-            ex.sendResponseHeaders(200, body.length);
-            try (OutputStream out = ex.getResponseBody()) {
-                out.write(body);
+            try {
+                ex.sendResponseHeaders(200, body.length);
+                try (OutputStream out = ex.getResponseBody()) {
+                    out.write(body);
+                }
+            } finally {
+                ex.close();
             }
         });
         server.start();

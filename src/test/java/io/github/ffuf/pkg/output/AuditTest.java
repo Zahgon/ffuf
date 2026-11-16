@@ -25,7 +25,11 @@ class AuditTest {
         AuditLogger audit = new AuditLogger(file.toString());
         try {
             Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("---------"));
-            assertThrows(IOException.class, () -> new AuditLogger(file.toString()), "opening an unwritable audit log");
+            // Like the Go test, this needs an unprivileged user: root opens a mode-000 file anyway, so there the
+            // reopen is not an error in Go or in Java and only the remaining steps are checked.
+            if (!Files.isWritable(file)) {
+                assertThrows(IOException.class, () -> new AuditLogger(file.toString()), "opening an unwritable audit log");
+            }
             Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("r-xr-x---"));
         } finally {
             audit.close();

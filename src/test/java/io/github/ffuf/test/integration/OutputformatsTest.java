@@ -36,8 +36,8 @@ class OutputformatsTest {
         Job job = HarnessTest.buildJob(opts, mm -> mm.addMatcher("status", "all"), Stdoutput::new);
         PrintStream oldOut = System.out;
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(buf, true, StandardCharsets.UTF_8));
-        try {
+        try (PrintStream capture = new PrintStream(buf, true, StandardCharsets.UTF_8)) {
+            System.setOut(capture);
             job.start();
         } finally {
             System.setOut(oldOut);

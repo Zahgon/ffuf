@@ -66,13 +66,16 @@ class PreflightTest {
     /** Writes body with a fixed length, or no body for an empty one. */
     static void send(HttpExchange ex, int status, String body) throws IOException {
         byte[] b = body.getBytes(StandardCharsets.UTF_8);
-        ex.sendResponseHeaders(status, b.length == 0 ? -1 : b.length);
-        if (b.length > 0) {
-            try (OutputStream out = ex.getResponseBody()) {
-                out.write(b);
+        try {
+            ex.sendResponseHeaders(status, b.length == 0 ? -1 : b.length);
+            if (b.length > 0) {
+                try (OutputStream out = ex.getResponseBody()) {
+                    out.write(b);
+                }
             }
+        } finally {
+            ex.close();
         }
-        ex.close();
     }
 
     /** A minimal config for runner tests. */

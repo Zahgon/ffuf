@@ -20,8 +20,8 @@ class StdoutTest {
     static String captureStdout(Runnable fn) {
         PrintStream old = System.out;
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(buf, true, StandardCharsets.UTF_8));
-        try {
+        try (PrintStream capture = new PrintStream(buf, true, StandardCharsets.UTF_8)) {
+            System.setOut(capture);
             fn.run();
         } finally {
             System.setOut(old);
@@ -33,8 +33,8 @@ class StdoutTest {
     static String captureStderr(Runnable fn) {
         PrintStream old = System.err;
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        System.setErr(new PrintStream(buf, true, StandardCharsets.UTF_8));
-        try {
+        try (PrintStream capture = new PrintStream(buf, true, StandardCharsets.UTF_8)) {
+            System.setErr(capture);
             fn.run();
         } finally {
             System.setErr(old);

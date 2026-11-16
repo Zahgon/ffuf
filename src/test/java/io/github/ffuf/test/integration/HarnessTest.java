@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -171,9 +172,13 @@ public class HarnessTest {
         return scan(opts, setup).inputs();
     }
 
-    /** Asserts that got holds the same distinct inputs as want, in any order. */
+    /** Asserts that got holds the same inputs as want, in any order: both are sorted and compared element by element. */
     public static void assertSet(List<String> want, List<String> got) {
-        assertEquals(new TreeSet<>(want), new TreeSet<>(got), "matched set");
+        List<String> w = new ArrayList<>(want);
+        List<String> g = new ArrayList<>(got);
+        Collections.sort(w);
+        Collections.sort(g);
+        assertEquals(w, g, "matched set");
     }
 
     /** The sorted, de-duplicated request paths the target received. */

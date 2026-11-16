@@ -55,9 +55,14 @@ class E2eTest {
         ProcessBuilder pb = new ProcessBuilder(cmd).redirectOutput(out.toFile()).redirectError(ProcessBuilder.Redirect.DISCARD);
         pb.environment().put("XDG_CONFIG_HOME", configHome.toString());
         Process p = pb.start();
-        if (!p.waitFor(60, TimeUnit.SECONDS)) {
-            p.destroyForcibly();
-            fail("ffuf timed out; args: " + List.of(args));
+        try {
+            if (!p.waitFor(60, TimeUnit.SECONDS)) {
+                fail("ffuf timed out; args: " + List.of(args));
+            }
+        } finally {
+            if (p.isAlive()) {
+                p.destroyForcibly();
+            }
         }
         assertEquals(0, p.exitValue(), "ffuf exit code; args: " + List.of(args));
         return Files.readString(out, StandardCharsets.UTF_8);
