@@ -87,6 +87,9 @@ class AuditTest {
         Path file = Files.createTempFile(tmp, "prefix", "");
         AuditLogger audit = new AuditLogger(file.toString());
         try {
+            // The Go test logs a cyclic struct, which json.Marshal rejects. The audit logger serializes only the
+            // configuration, requests and responses and rejects anything else with json.Marshal's unsupported-type
+            // error, so any other object stands for the value that cannot be marshalled.
             assertThrows(IOException.class, () -> audit.write(new Object()), "logging an object that cannot be serialized");
             audit.write(config);
             audit.write(req);

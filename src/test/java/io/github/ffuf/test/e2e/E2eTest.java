@@ -56,6 +56,8 @@ class E2eTest {
         pb.environment().put("XDG_CONFIG_HOME", configHome.toString());
         Process p = pb.start();
         try {
+            // ffuf reads no standard input in these scans; closing the pipe gives it end of file at once.
+            p.getOutputStream().close();
             if (!p.waitFor(60, TimeUnit.SECONDS)) {
                 fail("ffuf timed out; args: " + List.of(args));
             }

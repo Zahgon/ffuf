@@ -94,11 +94,11 @@ class OutputformatsTest {
                     assertSet(List.of("200", "201"), inputs);
                 }
                 case "csv", "ecsv" -> {
-                    String[] rows = text.split("\n");
-                    assertEquals(3, rows.length, format + ": rows (header + 2 results)");
-                    int col = List.of(rows[0].split(",", -1)).indexOf("status_code");
-                    assertTrue(col >= 0, format + ": no status_code column in header " + rows[0]);
-                    assertSet(List.of("200", "201"), List.of(rows[1].split(",", -1)[col], rows[2].split(",", -1)[col]));
+                    List<List<String>> rows = readCsv(text, format);
+                    assertEquals(3, rows.size(), format + ": rows (header + 2 results)");
+                    int col = rows.get(0).indexOf("status_code");
+                    assertTrue(col >= 0, format + ": no status_code column in header " + rows.get(0));
+                    assertSet(List.of("200", "201"), List.of(rows.get(1).get(col), rows.get(2).get(col)));
                 }
                 default -> {
                     for (String in : List.of("200", "201")) {
@@ -107,5 +107,66 @@ class OutputformatsTest {
                 }
             }
         }
+    }
+
+    /**
+     * Reads text as CSV the way Go's encoding/csv ReadAll does: comma-separated fields, double-quoted fields with ""
+     * for a quote, records ended by \n or \r\n, and every record with as many fields as the first. Fails the test
+     * when the text is not valid CSV.
+     */
+    private static List<List<String>> readCsv(String text, String format) {
+        List<List<String>> rows = new ArrayList<>();
+        List<String> row = new ArrayList<>();
+        StringBuilder field = new StringBuilder();
+        int i = 0;
+        boolean atFieldStart = true;
+        while (i < text.length()) {
+            char c = text.charAt(i);
+            if (atFieldStart && c == '"') {
+                i++;
+                while (true) {
+                    assertTrue(i < text.length(), format + ": not valid CSV: extraneous or missing \" in quoted-field");
+                    char q = text.charAt(i);
+                    if (q == '"' && i + 1 < text.length() && text.charAt(i + 1) == '"') {
+                        field.append('"');
+                        i += 2;
+                    } else if (q == '"') {
+                        i++;
+                        break;
+                    } else {
+                        field.append(q);
+                        i++;
+                    }
+                }
+                assertTrue(i == text.length() || text.charAt(i) == ',' || text.charAt(i) == '\n' || text.charAt(i) == '\r',
+                        format + ": not valid CSV: extraneous \" in field");
+                atFieldStart = false;
+            } else if (c == ',') {
+                row.add(field.toString());
+                field.setLength(0);
+                atFieldStart = true;
+                i++;
+            } else if (c == '\n' || (c == '\r' && i + 1 < text.length() && text.charAt(i + 1) == '\n')) {
+                row.add(field.toString());
+                field.setLength(0);
+                rows.add(row);
+                row = new ArrayList<>();
+                atFieldStart = true;
+                i += c == '\r' ? 2 : 1;
+            } else {
+                assertTrue(c != '"', format + ": not valid CSV: bare \" in non-quoted-field");
+                field.append(c);
+                atFieldStart = false;
+                i++;
+            }
+        }
+        if (!atFieldStart || field.length() > 0 || !row.isEmpty()) {
+            row.add(field.toString());
+            rows.add(row);
+        }
+        for (List<String> r : rows) {
+            assertEquals(rows.get(0).size(), r.size(), format + ": not valid CSV: wrong number of fields");
+        }
+        return rows;
     }
 }

@@ -24,6 +24,7 @@ class RequestTest {
     private static boolean same(Request a, Request b) {
         if (!a.method.equals(b.method) || !a.host.equals(b.host) || !a.url.equals(b.url) || !a.headers.equals(b.headers)
                 || !java.util.Arrays.equals(a.data, b.data) || a.position != b.position || !a.raw.equals(b.raw)
+                || !a.error.equals(b.error) || !java.util.Objects.equals(a.timestamp, b.timestamp)
                 || !a.input.keySet().equals(b.input.keySet())) {
             return false;
         }
