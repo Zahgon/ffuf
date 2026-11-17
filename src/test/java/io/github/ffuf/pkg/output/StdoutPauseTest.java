@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.ffuf.pkg.ffuf.Config;
+import io.github.ffuf.pkg.ffuf.Request;
 import io.github.ffuf.pkg.ffuf.Response;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -16,7 +17,12 @@ import org.junit.jupiter.api.Test;
 
 class StdoutPauseTest {
     private static Response resp(int i) {
-        return StdoutTest.response("w" + i, "http://example/" + i);
+        Response r = new Response();
+        r.statusCode = 200;
+        r.request = new Request();
+        r.request.input.put("FUZZ", ("w" + i).getBytes(StandardCharsets.UTF_8));
+        r.request.url = "http://example/" + i;
+        return r;
     }
 
     private static Stdoutput newOutput() {

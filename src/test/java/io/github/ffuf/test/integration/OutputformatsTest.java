@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.ffuf.pkg.ffuf.ConfigOptions;
 import io.github.ffuf.pkg.engine.Job;
+import io.github.ffuf.pkg.filter.MatcherManager;
 import io.github.ffuf.pkg.output.Stdoutput;
 import io.github.ffuf.pkg.testtarget.Target;
 import java.io.ByteArrayOutputStream;
@@ -30,10 +31,11 @@ class OutputformatsTest {
      * Runs a scan with the real terminal output, which accumulates the results and writes them to the -o file at the
      * end. The terminal lines are captured and returned so they stay out of the test log.
      */
-    private String runScanStdout(String url, List<String> words, Consumer<ConfigOptions> configure) throws Exception {
+    private String runScanStdout(String url, List<String> words, Consumer<ConfigOptions> configure, Consumer<MatcherManager> setup)
+            throws Exception {
         ConfigOptions opts = HarnessTest.options(tmp, url, words);
         configure.accept(opts);
-        Job job = HarnessTest.buildJob(opts, mm -> mm.addMatcher("status", "all"), Stdoutput::new);
+        Job job = HarnessTest.buildJob(opts, setup, Stdoutput::new);
         PrintStream oldOut = System.out;
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try (PrintStream capture = new PrintStream(buf, true, StandardCharsets.UTF_8)) {
@@ -57,7 +59,7 @@ class OutputformatsTest {
             runScanStdout(target.url() + "/reflect/FUZZ", words, o -> {
                 o.output.outputFile = out.toString();
                 o.output.outputFormat = "json";
-            });
+            }, mm -> mm.addMatcher("status", "all"));
         }
         JsonNode doc = new ObjectMapper().readTree(Files.readAllBytes(out));
         assertEquals(60, doc.path("results").size(), "accumulated results at high concurrency");
@@ -70,10 +72,9 @@ class OutputformatsTest {
         try (Target target = Target.start()) {
             runScanStdout(target.url() + "/status/FUZZ", List.of("200", "201"), o -> {
                 o.general.threads = 1;
-                o.matcher.status = "200,201";
                 o.output.outputFile = base.toString();
                 o.output.outputFormat = "all";
-            });
+            }, mm -> mm.addMatcher("status", "200,201"));
         }
         ObjectMapper mapper = new ObjectMapper();
         for (String format : new String[] {"json", "ejson", "csv", "ecsv", "md", "html"}) {
