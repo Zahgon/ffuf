@@ -30,7 +30,8 @@ class AuditTest {
             if (!Files.isWritable(file)) {
                 assertThrows(IOException.class, () -> new AuditLogger(file.toString()).close(), "opening an unwritable audit log");
             }
-            Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("r-xr-x---"));
+            // The Go test's os.Chmod(filename, 6550) takes the decimal 6550, whose permission bits are 0626.
+            Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw--w-rw-"));
         } finally {
             audit.close();
         }

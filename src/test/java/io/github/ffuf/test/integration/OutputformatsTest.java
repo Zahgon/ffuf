@@ -2,6 +2,7 @@ package io.github.ffuf.test.integration;
 
 import static io.github.ffuf.test.integration.HarnessTest.assertSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,13 +29,15 @@ class OutputformatsTest {
     Path tmp;
 
     /**
-     * Runs a scan with the real terminal output, which accumulates the results and writes them to the -o file at the
-     * end. The terminal lines are captured and returned so they stay out of the test log.
+     * Runs a scan with the real terminal output, which accumulates the results, and returns that output. The terminal
+     * lines are captured so they stay out of the test log.
      */
-    private String runScanStdout(String url, List<String> words, Consumer<ConfigOptions> configure, Consumer<MatcherManager> setup)
+    private Stdoutput runScanStdout(String url, List<String> words, Consumer<ConfigOptions> configure, Consumer<MatcherManager> setup)
             throws Exception {
         ConfigOptions opts = HarnessTest.options(tmp, url, words);
-        configure.accept(opts);
+        if (configure != null) {
+            configure.accept(opts);
+        }
         Job job = HarnessTest.buildJob(opts, setup, Stdoutput::new);
         PrintStream oldOut = System.out;
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
@@ -44,7 +47,7 @@ class OutputformatsTest {
         } finally {
             System.setOut(oldOut);
         }
-        return buf.toString(StandardCharsets.UTF_8);
+        return job.output();
     }
 
     /** Every match reported at the default concurrency is accumulated; none is lost to concurrent appends. */
@@ -54,31 +57,25 @@ class OutputformatsTest {
         for (int i = 0; i < 60; i++) {
             words.add("w" + i);
         }
-        Path out = tmp.resolve("out.json");
+        Stdoutput out;
         try (Target target = Target.start()) {
-            runScanStdout(target.url() + "/reflect/FUZZ", words, o -> {
-                o.output.outputFile = out.toString();
-                o.output.outputFormat = "json";
-            }, mm -> mm.addMatcher("status", "all"));
+            out = runScanStdout(target.url() + "/reflect/FUZZ", words, null, mm -> mm.addMatcher("status", "all"));
         }
-        JsonNode doc = new ObjectMapper().readTree(Files.readAllBytes(out));
-        assertEquals(60, doc.path("results").size(), "accumulated results at high concurrency");
+        assertEquals(60, out.getCurrentResults().size(), "accumulated results at high concurrency (results lost?)");
     }
 
     /** Writes each supported file format and checks it carries the result fields, status and input. */
     @Test
     void testOutputFormats() throws Exception {
-        Path base = tmp.resolve("out");
+        Stdoutput out;
         try (Target target = Target.start()) {
-            runScanStdout(target.url() + "/status/FUZZ", List.of("200", "201"), o -> {
-                o.general.threads = 1;
-                o.output.outputFile = base.toString();
-                o.output.outputFormat = "all";
-            }, mm -> mm.addMatcher("status", "200,201"));
+            out = runScanStdout(target.url() + "/status/FUZZ", List.of("200", "201"), o -> o.general.threads = 1,
+                    mm -> mm.addMatcher("status", "200,201"));
         }
         ObjectMapper mapper = new ObjectMapper();
         for (String format : new String[] {"json", "ejson", "csv", "ecsv", "md", "html"}) {
             Path path = tmp.resolve("out." + format);
+            assertNull(out.saveFile(path.toString(), format), "saveFile(" + format + ")");
             byte[] b = Files.readAllBytes(path);
             assertTrue(b.length > 0, format + ": wrote an empty file");
             String text = new String(b, StandardCharsets.UTF_8);

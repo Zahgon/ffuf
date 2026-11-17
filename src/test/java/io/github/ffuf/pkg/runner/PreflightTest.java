@@ -11,7 +11,6 @@ import com.sun.net.httpserver.HttpServer;
 import io.github.ffuf.pkg.ffuf.Config;
 import io.github.ffuf.pkg.ffuf.PreflightConfig;
 import io.github.ffuf.pkg.ffuf.Request;
-import io.github.ffuf.pkg.ffuf.Response;
 import io.github.ffuf.pkg.ffuf.VarExtract;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -113,14 +112,6 @@ class PreflightTest {
         return pf;
     }
 
-    /** One main request as the job sends it: preflights, the request itself, then postflights. */
-    static Response execute(Flights f, Config conf, Request req) throws SimpleRunner.RequestException {
-        Map<String, String> applied = f.runPreflights(req);
-        Response resp = new SimpleRunner(conf).execute(req);
-        f.runPostflights(applied);
-        return resp;
-    }
-
     @Test
     void testPreflightVarsSubstitutedIntoMainRequest() throws Exception {
         HttpServer srv = serve(ex -> send(ex, 200, "<input name=\"csrf\" value=\"tok123\">"));
@@ -198,7 +189,7 @@ class PreflightTest {
             Config conf = ps.config(tmp, "per-request");
             Flights f = flights(conf);
             for (int i = 0; i < 5; i++) {
-                execute(f, conf, mainReq(url(ps.srv)));
+                f.execute(mainReq(url(ps.srv)));
             }
             assertEquals(5, ps.preflightHits.get(), "preflight hits (per-request runs every time)");
             Set<String> seen = new HashSet<>();
@@ -218,7 +209,7 @@ class PreflightTest {
             Config conf = ps.config(tmp, "per-thread");
             Flights f = flights(conf);
             for (int i = 0; i < 10; i++) {
-                execute(f, conf, mainReq(url(ps.srv)));
+                f.execute(mainReq(url(ps.srv)));
             }
             assertEquals(1, ps.preflightHits.get(), "preflight hits (per-thread amortizes to one per lane)");
             for (String tok : ps.tokens()) {
@@ -241,7 +232,7 @@ class PreflightTest {
             for (int w = 0; w < 4; w++) {
                 futures.add(pool.submit(() -> {
                     for (int i = 0; i < 25; i++) {
-                        execute(f, conf, mainReq(url(ps.srv)));
+                        f.execute(mainReq(url(ps.srv)));
                     }
                     return null;
                 }));

@@ -95,6 +95,20 @@ public class Flights {
         }
     }
 
+    /**
+     * Sends one main request the way the Go SimpleRunner.Execute does: the preflights, with their variables applied to
+     * the request, then the request itself, then the postflights.
+     *
+     * @return the response to the main request
+     * @throws SimpleRunner.RequestException when a preflight or the main request fails
+     */
+    public Response execute(Request req) throws SimpleRunner.RequestException {
+        Map<String, String> applied = runPreflights(req);
+        Response resp = runner.execute(req);
+        runPostflights(applied);
+        return resp;
+    }
+
     private static String replace(String s, Map<String, String> vars) {
         List<String> names = new ArrayList<>(vars.keySet());
         names.sort((a, b) -> a.length() != b.length() ? b.length() - a.length() : a.compareTo(b));

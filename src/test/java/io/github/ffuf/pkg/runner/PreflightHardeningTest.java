@@ -1,7 +1,6 @@
 package io.github.ffuf.pkg.runner;
 
 import static io.github.ffuf.pkg.runner.PreflightTest.close;
-import static io.github.ffuf.pkg.runner.PreflightTest.execute;
 import static io.github.ffuf.pkg.runner.PreflightTest.flight;
 import static io.github.ffuf.pkg.runner.PreflightTest.flights;
 import static io.github.ffuf.pkg.runner.PreflightTest.hostPort;
@@ -42,7 +41,7 @@ class PreflightHardeningTest {
             Request req = new Request();
             req.method = "GET";
             req.url = "http://HOSTVAR/main";
-            SimpleRunner.RequestException e = assertThrows(SimpleRunner.RequestException.class, () -> execute(flights(conf), conf, req));
+            SimpleRunner.RequestException e = assertThrows(SimpleRunner.RequestException.class, () -> flights(conf).execute(req));
             assertTrue(e.getMessage().contains("changed the request host"), "unexpected error: " + e.getMessage());
         } finally {
             close(srv);
@@ -74,7 +73,7 @@ class PreflightHardeningTest {
             conf.rateLimitFunc = calls::incrementAndGet;
             Flights f = flights(conf);
             for (int i = 0; i < 3; i++) {
-                execute(f, conf, mainReq(url(ps.srv)));
+                f.execute(mainReq(url(ps.srv)));
             }
             assertEquals(3, calls.get(), "rate limiter consultations (one per preflight request)");
         } finally {
@@ -98,7 +97,7 @@ class PreflightHardeningTest {
             Config conf = newTestConfig(url(srv));
             conf.ignoreBody = true;
             conf.postflights = List.of(flight(writeTempRequest(tmp, "GET /post HTTP/1.1\nHost: " + hostPort(srv) + "\n\n")));
-            execute(flights(conf), conf, mainReq(url(srv)));
+            flights(conf).execute(mainReq(url(srv)));
             assertEquals(1, postHits.get(), "postflight runs for an ignored-body response");
         } finally {
             close(srv);

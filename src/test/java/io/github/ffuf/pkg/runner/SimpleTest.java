@@ -130,13 +130,20 @@ class SimpleTest {
         }
     }
 
-    /** Bytes the current thread allocated while fn ran. */
+    /** Bytes the process allocated while fn ran, summed over its threads like Go's MemStats.TotalAlloc. */
     private static long allocatedBy(ThrowingRunnable fn) throws Exception {
         com.sun.management.ThreadMXBean mx = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
-        long id = Thread.currentThread().getId();
-        long before = mx.getThreadAllocatedBytes(id);
+        long before = totalAllocated(mx);
         fn.run();
-        return mx.getThreadAllocatedBytes(id) - before;
+        return totalAllocated(mx) - before;
+    }
+
+    private static long totalAllocated(com.sun.management.ThreadMXBean mx) {
+        long sum = 0;
+        for (long bytes : mx.getThreadAllocatedBytes(mx.getAllThreadIds())) {
+            sum += Math.max(bytes, 0);
+        }
+        return sum;
     }
 
     private interface ThrowingRunnable {
@@ -145,8 +152,8 @@ class SimpleTest {
 
     /**
      * With -od or -audit-log a body far over the cap must not be read into memory: the snapshot stays within the cap
-     * and the response is cancelled. The allocation is measured on the requesting thread only, so the server's own
-     * buffers do not count.
+     * and the response is cancelled. As in the Go test, the allocation is the whole process's, the in-process server
+     * included, and the ceiling is twice the body.
      */
     @Test
     void testExecute_SnapshotIsBoundedWithOutputFeatures() throws Exception {

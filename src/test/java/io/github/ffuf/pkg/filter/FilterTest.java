@@ -1,5 +1,6 @@
 package io.github.ffuf.pkg.filter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,10 +10,12 @@ import org.junit.jupiter.api.Test;
 class FilterTest {
     @Test
     void testNewFilterByName() {
-        assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("status", "200"));
-        assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("size", "200"));
-        assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("word", "200"));
-        assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("line", "200"));
+        // Go has one type per filter (StatusFilter, SizeFilter, WordFilter, LineFilter); here one RangeFilter class
+        // serves all four, so each is checked by its class and by the kind its description names.
+        assertEquals("Response status: 200", assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("status", "200")).reprVerbose(), "statusfilter");
+        assertEquals("Response size: 200", assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("size", "200")).reprVerbose(), "sizefilter");
+        assertEquals("Response words: 200", assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("word", "200")).reprVerbose(), "wordfilter");
+        assertEquals("Response lines: 200", assertInstanceOf(RangeFilter.class, MatcherManager.newFilterByName("line", "200")).reprVerbose(), "linefilter");
         assertInstanceOf(RegexpFilter.class, MatcherManager.newFilterByName("regexp", "200"));
         // TestNewFilterByName passes "200" for "time" too: Go's NewTimeFilter returns a *TimeFilter together with its
         // "invalid value" error for a value without < or >, and the test checks only the type. Java has no value-plus-

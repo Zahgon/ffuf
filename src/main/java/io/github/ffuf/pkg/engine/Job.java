@@ -462,9 +462,7 @@ public class Job {
         req.timestamp = Instant.now();
         Response resp;
         try {
-            Map<String, String> applied = flights.runPreflights(req);
-            resp = runner.execute(req);
-            flights.runPostflights(applied);
+            resp = flights.execute(req);
             audit(req, "request");
             audit(resp, "response");
         } catch (SimpleRunner.RequestException e) {
